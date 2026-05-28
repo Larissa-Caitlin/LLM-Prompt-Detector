@@ -1,6 +1,8 @@
 import re
 import torch
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+from config import MODEL_PATH, CONFIDENCE_THRESHOLD
+from logger import logger
 
 # ── Rule-based patterns ──────────────────────────────────────────────
 INJECTION_PATTERNS = [
@@ -62,7 +64,8 @@ SAFE_WHITELIST = [
 
 
 # ── Load model once at startup ───────────────────────────────────────
-MODEL_PATH = "models/distilbert-injection/final"
+from config import MODEL_PATH, CONFIDENCE_THRESHOLD
+
 
 tokenizer = DistilBertTokenizer.from_pretrained(MODEL_PATH)
 model     = DistilBertForSequenceClassification.from_pretrained(MODEL_PATH)
@@ -94,7 +97,7 @@ def ml_check(prompt):
         probs  = torch.softmax(logits, dim=1)[0]
 
     injection_score = probs[1].item()
-    return injection_score > 0.7, round(injection_score, 4)
+    return injection_score > CONFIDENCE_THRESHOLD, round(injection_score, 4)
 
 # ── Combined detector ────────────────────────────────────────────────
 def detect(prompt):
